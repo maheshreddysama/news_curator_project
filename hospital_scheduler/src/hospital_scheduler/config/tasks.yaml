@@ -1,0 +1,42 @@
+# C:\Users\mahes\OneDrive\Desktop\hospital_scheduler\src\hospital_scheduler\config\tasks.yaml
+
+collect_details_task:
+  description: |
+    **Given the following patient input:**
+    ```
+    {patient_input}
+    ```
+    Extract all essential patient details: patient's name, the desired service/reason for visit,
+    preferred appointment date and time (ensure it's in ISO format, e.g., 'YYYY-MM-DDTHH:MM:SS-04:00'),
+    and the preferred doctor specialty.
+    Your output should simply be the extracted facts in a clear, concise manner, ready for the next step.
+  expected_output: |
+    Extracted Patient Details:
+    - Patient Name: [Extracted Name]
+    - Reason for Visit: [Extracted Reason]
+    - Preferred Datetime (ISO): [Extracted ISO Datetime]
+    - Doctor Specialty: [Extracted Specialty]
+    Example:
+    Extracted Patient Details:
+    - Patient Name: John Doe
+    - Reason for Visit: Dental Cleaning
+    - Preferred Datetime (ISO): 2025-07-01T09:00:00-04:00
+    - Doctor Specialty: Dentistry
+  agent: scheduler
+  tools:
+    - DatabaseTool # Still keep the tool, as the scheduler will need to know about it for planning
+
+manage_booking_task:
+  description: |
+    Given the extracted patient details from the previous task, which will contain:
+    Patient Name, Preferred Datetime (ISO), and Doctor Specialty,
+    use the DatabaseTool to first 'check_availability' for the requested appointment time and specialty.
+    **If available**, then use the DatabaseTool again to 'save_appointment' with all the collected patient details.
+    **If unavailable**, inform the patient about the unavailability.
+    The final output MUST be a clear confirmation message for the patient (e.g., "Your appointment for [Patient Name] on [Date] at [Time] is confirmed.") or a clear message stating the unavailability.
+  expected_output: |
+    A confirmation message for the patient (e.g., "Your appointment for John Joe on 2025-06-25 at 14:30 with a General practitioner is confirmed.")
+    OR a message indicating unavailability and suggesting next steps (e.g., "The requested slot is unavailable. Please try another time or specialty.").
+  agent: database_agent
+  tools:
+    - DatabaseTool
